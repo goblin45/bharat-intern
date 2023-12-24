@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="login-box">
+        <form>
+            <p class="heading">Login with Us</p>
+            <div class="input-field">
+                <input id="username" type="text" placeholder="your username" name="username"/>
+                <div class="box-icon">
+                    <abbr title="Enter your username">
+                        <i class='bx bx-user'></i>
+                    </abbr>
+                </div>
+            </div>
+            <div class="input-field">    
+                <input id="password" type="password" placeholder="your password"/>
+                <div id="showeye" class="box-icon">
+                    <abbr title="Make password visible">
+                        <i class='bx bx-show'></i>
+                    </abbr>
+                </div>
+                <div id="hideeye" class="box-icon hide">
+                    <abbr title="Make password invisible">
+                        <i class='bx bx-hide'></i>
+                    </abbr>
+                </div>
+            </div>
+            <div class="help-box">
+                <a href="">Forgot Password?</a>
+                <a href="register.html">Not registered already?</a>
+            </div>
+            <div id="response-box"></div>
+            <button type='submit' id="submit-button" class="submit">Log in</button>
+        </form>
+    </div>
+    <script>
+        const responseBox = document.getElementById('response-box')
+        
+        document.getElementById('submit-button').addEventListener('click', function(event){
+            event.preventDefault()
+
+            const username = document.getElementById('username').value
+            const password = document.getElementById('password').value
+
+            if (username?.length === 0) {
+                responseBox.textContent = "Must provide username."
+            } else if (password?.length === 0) {
+                responseBox.textContent = "Must provide password."
+            } else {
+                const reqBody = {username: username, password: password}
+                try {
+                    fetch('http://127.0.0.1:3500/login', {
+                        method: 'POST',
+                        body: JSON.stringify(reqBody),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.status === 200) {
+                            window.location.href = '/welcome.html'
+                        }
+                        return response.json()
+                    })
+                    .then(data => {
+                        responseBox.textContent = data.message
+                    })
+                } catch(error) {
+                    responseBox.textContent = JSON.stringify(error.data.message)
+                }
+            }
+        })
+
+        document.getElementById('username').addEventListener('input', function(event){
+            event.preventDefault()
+            responseBox.textContent = ""
+        })
+
+        document.getElementById('password').addEventListener('input', function(event){
+            event.preventDefault()
+            responseBox.textContent = ""
+        })
+        
+        const showeye = document.getElementById('showeye')
+        const hideeye = document.getElementById('hideeye')
+        const password = document.getElementById('password')
+
+        showeye.addEventListener('click', function(event){
+            event.preventDefault()
+            showeye.classList.add('hide')
+            hideeye.classList.remove('hide')
+            password.type = 'text'
+        })
+        
+        hideeye.addEventListener('click', function(event){
+            event.preventDefault()
+            hideeye.classList.add('hide')
+            showeye.classList.remove('hide')
+            password.type = 'password'
+        })
+    </script>
+</body>
+</html>
