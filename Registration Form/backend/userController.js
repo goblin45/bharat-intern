@@ -4,43 +4,45 @@ const asyncHandler = require('express-async-handler')
 const nodemailer = require('nodemailer')
 const otpGenerator = require('otp-generator')
 const fs = require('fs/promises')
-const { setTimeout } = require('timers')
 
 const generateOtp = asyncHandler(async(req, res) => {
     const {username, email, password} = req.body
     console.log(username, email, password)
     let duplicate = await User.findOne({username})
     if (duplicate) {
-        console.log('checkpoint 1')
         return res.status(400).json({ message: "Username is already taken." })
     } 
     duplicate = await User.findOne({email})
     if (duplicate) {
-        console.log('checkpoint 2')
         return res.status(400).json({ message: "Account already exists for this E-mail." })
     }
     const hashPwd = await bcrypt.hash(password, 10)
     const otp = otpGenerator.generate(6)
-    const otpCombo = { user: {username, email, password: hashPwd}, otp }
+    const otpCombo = { user: {username, email, password: hashPwd}, otp, date: new Date() }
+    const transport = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'bharat.intern.dummy10@gmail.com',
+            pass: 'dckfvubvqdpkvpnx'
+        }
+    })
     try {
-        console.log('checkpoint 3')
+        const message = {
+            from: 'bharat.intern.dummy10@gmail.com',
+            to: email,
+            subject: 'OTP for Registration',
+            text: `Your OTP for registration in Bharat Intern's dummy site is: ${otp}`
+        }
+        await transport.sendMail(message)
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error. Please try again later." })
+    }
+    try {
         await fs.writeFile(`otps/${email}.json`, JSON.stringify(otpCombo))
-        res.status(200).json({ message: "OTP sent." })
-        
-        setTimeout(async function() {
-            await fs.unlink(`otps/${email}.json`, (error) => {
-                if (error)
-                    console.log(error)
-                else 
-                    console.log('checkpoint 3.5')
-            })
-        }, 360000)
-        console.log('checkpoint 4')
+        return res.status(200).json({ message: "OTP sent." })
     } catch (error) {
         return res.status(500).json({ message: 'Internal server error.' }) 
     }
-    
-    
 })
 
 const registerNewUser = asyncHandler(async(req, res) => {
@@ -49,12 +51,22 @@ const registerNewUser = asyncHandler(async(req, res) => {
     const userData = await fs.readFile(`otps/${email}.json`, 'utf-8', (error, data) => {
         if (error) {
             expiredFlag = !expiredFlag
+            return null
         } else {
             return data
         }
     })
     if (expiredFlag) {
-        return res.status(400).json({ message: "OTP expired. Please register again." })
+        return res.status(400).json({ message: "OTP seems to be expired. Please register again." })
+    }
+    const minuteGap = () => {
+        const currTime = new Date()
+        const prevTime = new Date(JSON.parse(userData).date)
+        return (currTime.getMinutes() - prevTime.getMinutes()) 
+    }
+    if (minuteGap() > 1) {
+        await fs.unlink(`otps/${email}.json`)
+        return res.status(400).json({ message: "OTP seems to be expired. Please register again." })
     }
     if (otp !== JSON.parse(userData).otp) {
         return res.status(400).json({ message: "Incorrect OTP. Please try again." })

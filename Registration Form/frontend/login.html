@@ -10,17 +10,9 @@
 <body>
     <div class="login-box">
         <form>
-            <p class="heading">Sign Up with Us</p>
+            <p class="heading">Login with Us</p>
             <div class="input-field">
-                <input id="email" type="text" placeholder="e-mail" name="email"/>
-                <div class="box-icon">
-                    <abbr title="Enter your E-mail">
-                        <i class='bx bx-envelope'></i>
-                    </abbr>
-                </div>
-            </div>
-            <div class="input-field">
-                <input id="username" type="text" placeholder="username" name="username"/>
+                <input id="username" type="text" placeholder="your username" name="username"/>
                 <div class="box-icon">
                     <abbr title="Enter your username">
                         <i class='bx bx-user'></i>
@@ -42,10 +34,10 @@
             </div>
             <div class="help-box">
                 <a href="">Forgot Password?</a>
-                <a href="index.html">Already Registered?</a>
+                <a href="index.html">Not registered already?</a>
             </div>
             <div id="response-box"></div>
-            <button type='submit' id="submit-button" class="submit">Register</button>
+            <button type='submit' id="submit-button" class="submit">Log in</button>
         </form>
     </div>
     <script>
@@ -54,40 +46,35 @@
         document.getElementById('submit-button').addEventListener('click', function(event){
             event.preventDefault()
 
-            console.log('register triggerred.')
-
             const username = document.getElementById('username').value
-            const email = document.getElementById('email').value
             const password = document.getElementById('password').value
 
-            if (email?.length === 0) {
-                responseBox.textContent = "Must provide e-mail."
-            } else if (username?.length === 0) {
+            if (username?.length === 0) {
                 responseBox.textContent = "Must provide username."
             } else if (password?.length === 0) {
                 responseBox.textContent = "Must provide password."
             } else {
-                const reqBody = {email: email, username: username, password: password}
+                const reqBody = {username: username, password: password}
                 try {
-                    fetch('http://127.0.0.1:3500/get-otp', {
+                    fetch('http://127.0.0.1:3500/login', {
                         method: 'POST',
                         body: JSON.stringify(reqBody),
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     })
-                    .then((response) => {
+                    .then(response => {
                         if (response.status === 200) {
-                            window.location.href = '/otp.html'
+                            window.location.href = `/welcome.html?user=${username}`
                         }
-                        response.json()
+                        return response.json()
                     })
                     .then(data => {
-                        responseBox.textContent = JSON.stringify(data.message)
+                        responseBox.textContent = data.message
                     })
-                } catch (error) {
-                    responseBox.textContent = "Connection error: Check your internet or try again later."
-                } 
+                } catch(error) {
+                    responseBox.textContent = JSON.stringify(error.data.message)
+                }
             }
         })
 
@@ -96,16 +83,11 @@
             responseBox.textContent = ""
         })
 
-        document.getElementById('email').addEventListener('input', function(event){
-            event.preventDefault()
-            responseBox.textContent = ""
-        })
-
         document.getElementById('password').addEventListener('input', function(event){
             event.preventDefault()
             responseBox.textContent = ""
         })
-
+        
         const showeye = document.getElementById('showeye')
         const hideeye = document.getElementById('hideeye')
         const password = document.getElementById('password')
