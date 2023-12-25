@@ -14,7 +14,7 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
-.login-box {
+.login-box, .otp-box, .welcome-box {
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -27,6 +27,9 @@ body {
     font-size: 1.8rem;
     padding: 5px;
     font-weight: 600;
+}
+
+.sub-heading {
 }
 
 .box-icon {
@@ -53,7 +56,7 @@ body {
 }
 
 .hide {
-    display: none;
+    display: none !important;
 }
 
 .help-box {
@@ -91,7 +94,8 @@ form {
     border: 1px solid whitesmoke;
     border-radius: 10px;
     box-shadow: 0 0 30px whitesmoke;
-    padding: 1rem 1.5rem;    height: 60%;
+    padding: 1rem 1.5rem;    
+    height: 60%;
     width: 100%;
     max-height: fit-content;
     backdrop-filter: blur(3px);
@@ -140,6 +144,7 @@ a:active {
     text-align: center;
     line-height: 1rem;
     font-weight: 600;
+    word-break: keep-all;
 }
 
 @keyframes enlarge-on-hover {
@@ -149,4 +154,73 @@ a:active {
     100% {
         transform: scaleX(1.2) scaleY(1.2);
     }
+}
+
+.otp-box form {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 40%;
+}
+
+#otp-input {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+}
+
+.otp-input-box {
+    border: 1px solid whitesmoke;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    width: 10%;
+    padding-left: 3.3%;
+}
+
+.resend-otp-box {
+    display: flex;
+    gap: 20px;
+}
+
+#resend-otp {
+    border-bottom: 1px solid whitesmoke;
+}
+
+#resend-otp:hover {
+    cursor: pointer;
+    animation: enlarge-on-hover 0.1s linear forwards;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#spin-loader {
+    animation: spin 1s linear infinite;
+}
+
+.welcome-box form {
+    /* display: flex;
+    justify-content: space-around;
+    align-items: center; */
+    padding: 20px 0; 
+    max-height: 30%;
+    height: fit-content;
+    width: 1000px;
+    word-break: whitespace;
+    text-align: center;
+}
+
+.welcome-box form p {
+    font-size: 5rem;
+}
+
+#user-name {
+    font-size: 4rem;
 }

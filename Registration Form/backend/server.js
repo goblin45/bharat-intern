@@ -34,6 +34,7 @@ mongoose.connection.once('open', () => {
 
 app.route('/login').post(UserController.loginUser)
 app.route('/get-otp').post(UserController.generateOtp)
+app.route('/resend-otp').post(UserController.resendOtp)
 app.route('/register').post(UserController.registerNewUser)
 
 app.listen(PORT, () => {

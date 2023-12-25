@@ -44,13 +44,18 @@
                 <a href="">Forgot Password?</a>
                 <a href="login.html">Already Registered?</a>
             </div>
-            <div id="response-box"></div>
+            <div id="response-box">
+                <i id="spin-loader" class='bx bx-loader-alt hide'></i>
+                <i id="check" class='bx bx-check hide'></i>
+            </div>
             <button type='submit' id="submit-button" class="submit">Register</button>
         </form>
     </div>
     <script>
         const responseBox = document.getElementById('response-box')
-        
+        const spinner = document.getElementById('spin-loader')
+        const check = document.getElementById('check')
+        let resCode = 0
         document.getElementById('submit-button').addEventListener('click', function(event){
             event.preventDefault()
 
@@ -69,6 +74,8 @@
             } else {
                 const reqBody = {email: email, username: username, password: password}
                 try {
+                    responseBox.textContent = "Sending OTP..."
+                    spinner.classList.remove('hide')
                     fetch('http://127.0.0.1:3500/get-otp', {
                         method: 'POST',
                         body: JSON.stringify(reqBody),
@@ -77,16 +84,23 @@
                         }
                     })
                     .then((response) => {
-                        if (response.status === 200) {
-                            window.location.href = '/otp.html'
+                        resCode = response.status
+                        if (resCode === 200) {
+                            check.classList.remove('hide')
+                            localStorage.setItem('email', email)
+                            localStorage.setItem('username', username)
+                            setTimeout(() => {
+                                window.location.href = '/otp.html'
+                            }, 3000)
                         }
-                        response.json()
+                        spinner.classList.add('hide')
+                        return response.json()
                     })
                     .then(data => {
-                        responseBox.textContent = JSON.stringify(data.message)
+                        responseBox.textContent = data.message
                     })
                 } catch (error) {
-                    responseBox.textContent = "Connection error: Check your internet or try again later."
+                    responseBox.textContent = "Connection error; Please check your internet or try again later."
                 } 
             }
         })

@@ -42,7 +42,7 @@
     </div>
     <script>
         const responseBox = document.getElementById('response-box')
-        
+        let resCode 
         document.getElementById('submit-button').addEventListener('click', function(event){
             event.preventDefault()
 
@@ -64,16 +64,19 @@
                         }
                     })
                     .then(response => {
-                        if (response.status === 200) {
-                            window.location.href = `/welcome.html?user=${username}`
-                        }
+                        resCode = response.status
+                        localStorage.setItem('username', username)
                         return response.json()
                     })
                     .then(data => {
                         responseBox.textContent = data.message
                     })
                 } catch(error) {
-                    responseBox.textContent = JSON.stringify(error.data.message)
+                    responseBox.textContent = "Connection error; Please check your internet or try again later."
+                }
+                if (resCode === 200) {
+                    localStorage.setItem('username', username)
+                    window.location.href = `/welcome.html`
                 }
             }
         })

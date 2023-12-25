@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter OTP</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="otp-box">
+        <form>
+            <p class="heading">Enter your OTP</p>
+            <p class="sub-heading">OTP has been sent to your E-mail.</p>
+            <div id="otp-input">
+                <input class="otp-input-box" type="text" maxlength="1" autofocus>
+                <input class="otp-input-box" type="text" maxlength="1">
+                <input class="otp-input-box" type="text" maxlength="1">
+                <input class="otp-input-box" type="text" maxlength="1">
+                <input class="otp-input-box" type="text" maxlength="1">
+                <input class="otp-input-box" type="text" maxlength="1">
+            </div>
+            <div id="response-box"></div>
+            <div class="resend-otp-box">
+                <p id="resend-otp">Resend OTP</p>
+                <i id="spin-loader" class='bx bx-loader-alt hide'></i>
+            </div>
+        </form>
+    </div>
+    <script>
+        const email = localStorage.getItem('email')
+        const spinner = document.getElementById('spin-loader')
+        const responseBox = document.getElementById('response-box')
+        document.getElementById('resend-otp').addEventListener('click', (event) => {
+            event.preventDefault()
+            // spinner.classList.remove('hide')
+            responseBox.textContent = "Re-sending OTP..."
+            try {
+                fetch('http://127.0.0.1:3500/resend-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({email}),
+                    headers: {
+                        'Content-Type' : 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    responseBox.textContent = data.message
+                })
+                // spinner.classList.add('hide')
+            } catch (error) {
+                responseBox.textContent = "Connection error; Please check your internet or try again later."
+                // spinner.classList.add('hide')
+            } 
+        })
+        const otpBoxes = document.querySelectorAll('.otp-input-box')
+        let otpVal = ""
+        otpBoxes.forEach((input, index) => {
+            input.addEventListener('input', (event) => {
+                let inputVal = event.target.value
+                if (inputVal.length === 1) {
+                    if (inputVal === ' ') {
+                        otpBoxes[index].focus()
+                    } else if (index < otpBoxes.length - 1) {
+                        otpVal = otpVal + inputVal
+                        otpBoxes[index + 1].focus()
+                    } else {
+                        otpVal = otpVal + inputVal
+                        responseBox.textContent = "Authenticating..."
+                        try {
+                            console.log(otpVal)
+                            let reqBody = {email, otp: otpVal}
+                            fetch('http://127.0.0.1:3500/register', {
+                                method: 'POST',
+                                body: JSON.stringify(reqBody),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (response.status === 200) {
+                                    window.location.href = `/welcome.html`
+                                } 
+                                return response.json()
+                            })
+                            .then(data => {
+                                responseBox.textContent = data.message
+                            })
+                        } catch (error) {
+                            responseBox.textContent = "Connection error; Please check your internet connection or try again later."
+                        }
+                    }
+                }
+            })
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Backspace') {
+                    if (otpBoxes[index].value === '' && index > 0) {
+                        otpBoxes[index - 1].focus()
+                        otpVal = otpVal.slice(0, index) + otpVal.slice(index + 1)
+                    } else {
+                        otpVal = ""
+                    }
+                    otpBoxes[index].value = ""
+                }
+                responseBox.textContent = ''
+            })
+            input.addEventListener('click', () => {
+            function max(num1, num2) {
+                if (num1 > num2) return num1
+                else return num2
+            }
+                if (index > otpVal.length) {
+                    otpBoxes[max(0, otpVal.length - 1)].focus()
+                }
+            })
+        })
+    </script>
+</body>
+</html>

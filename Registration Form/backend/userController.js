@@ -7,7 +7,6 @@ const fs = require('fs/promises')
 
 const generateOtp = asyncHandler(async(req, res) => {
     const {username, email, password} = req.body
-    console.log(username, email, password)
     let duplicate = await User.findOne({username})
     if (duplicate) {
         return res.status(400).json({ message: "Username is already taken." })
@@ -41,22 +40,60 @@ const generateOtp = asyncHandler(async(req, res) => {
         await fs.writeFile(`otps/${email}.json`, JSON.stringify(otpCombo))
         return res.status(200).json({ message: "OTP sent." })
     } catch (error) {
-        return res.status(500).json({ message: 'Internal server error.' }) 
+        return res.status(500).json({ message: 'Internal server error. Please try again later.' }) 
+    }
+})
+
+const resendOtp = asyncHandler(async(req, res) => {
+    const {email} = req.body 
+    const duplicate = await User.findOne({email})
+    if (duplicate) {
+        return res.status(400).json({message: 'Account already exists for this E-mail.'})
+    }
+    let userData 
+    try {
+        userData = await fs.readFile(`otps/${email}.json`, 'utf-8')
+    } catch (error) {
+        return res.status(400).json({ message: "OTP seems to be expired. Please register again." })
+    }
+    const newOtp = otpGenerator.generate(6)
+    const newOtpCombo = {
+        user: JSON.parse(userData).user,
+        otp: newOtp,
+        date: new Date()
+    }
+    const transport = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'bharat.intern.dummy10@gmail.com',
+            pass: 'dckfvubvqdpkvpnx'
+        }
+    })
+    try {
+        const message = {
+            from: 'bharat.intern.dummy10@gmail.com',
+            to: email,
+            subject: 'OTP for Registration',
+            text: `Your OTP for registration in Bharat Intern's dummy site is: ${newOtp}`
+        }
+        await transport.sendMail(message)
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error. Please try again later." })
+    }
+    try {
+        await fs.writeFile(`otps/${email}.json`, JSON.stringify(newOtpCombo))
+        return res.status(200).json({ message: "OTP re-sent." })
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error. Please try again later.' }) 
     }
 })
 
 const registerNewUser = asyncHandler(async(req, res) => {
     const {otp, email} = req.body
-    let expiredFlag = false
-    const userData = await fs.readFile(`otps/${email}.json`, 'utf-8', (error, data) => {
-        if (error) {
-            expiredFlag = !expiredFlag
-            return null
-        } else {
-            return data
-        }
-    })
-    if (expiredFlag) {
+    let userData
+    try {
+        userData = await fs.readFile(`otps/${email}.json`, 'utf-8')
+    } catch (error) {
         return res.status(400).json({ message: "OTP seems to be expired. Please register again." })
     }
     const minuteGap = () => {
@@ -100,6 +137,7 @@ const loginUser = asyncHandler(async(req, res) => {
 
 module.exports = {
     generateOtp,
+    resendOtp,
     registerNewUser,
     loginUser
 }

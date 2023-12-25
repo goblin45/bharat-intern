@@ -4,8 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    
+    <div class="welcome-box">
+        <form>
+            <p>Welcome</p>
+            <p id="user-name"></p>
+        </form>
+    </div>
+    <script>
+        const username = localStorage.getItem('username')
+        const email = localStorage.getItem('email')
+        const userDisplay = document.getElementById('user-name')
+        userDisplay.textContent = username
+    </script>
 </body>
 </html>
